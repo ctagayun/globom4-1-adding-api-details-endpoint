@@ -34,22 +34,30 @@ app.UseCors(p => p.WithOrigins("http://localhost:3000")
 
 app.UseHttpsRedirection();
 
-//Now we will access the HouseDBContext. The DI container 
-//will provide an instance for me. We use the Interface instead of the 
+//*Now we will access the HouseDBContext. The DI container 
+//*will provide an instance for me. We use the Interface instead of the 
 //concrete HouseRepository because our repo will not be dependent 
 //on a specific database. No need to "await the task". That will be 
 //handled by the framework
-app.MapGet("/houses", (IHouseRepository repo) =>
-   repo.GetAll());    //*this means access the Houses property
+app.MapGet("/houses", (IHouseRepository repo) => repo.GetAll())
+          .Produces<HouseDto[]>(StatusCodes.Status200OK);
+                      //*this means access the Houses property
                       //*of the HouseDbContext which contains a collection 
                       //*HousesEntity. It will be automatically serialized to JSON
 
+//*This means use only this EP when the second ppart of the EP is an integer.
+//*now in the lambda we can determine that houseID is the FIRST parameter. ASP.Netcore
+//*is smart enough to see that: {houseId:int} == int houseId.
+//*The second parameter is IHouseRepository coming from the DEPENDENCY INJECTOR CONTAINER
 app.MapGet("/house/{houseId:int}", async(int houseId,IHouseRepository repo) =>
    {
-     var house = await repo.Get(houseId);
+     var house = await repo.Get(houseId); //*now get the house
      if (house == null)
+       //*Use the "Results" object to determine the problem
        return Results.Problem($"House with ID {houseId} not found.",
               statusCode: 404);
+
+     //*Use the result object to determine to the status code to return
      return Results.Ok(house);
    }).ProducesProblem(404).Produces<HouseDetailDto>(StatusCodes.Status200OK);
                      
