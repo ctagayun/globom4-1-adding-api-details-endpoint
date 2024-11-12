@@ -53,11 +53,12 @@ app.MapGet("/house/{houseId:int}", async(int houseId,IHouseRepository repo) =>
    {
      var house = await repo.Get(houseId); //*now get the house
      if (house == null)
-       //*Use the "Results" object to determine the problem
+       //*to determine the problem the standard way of doing this is to use the "Results"
+       //*object to determine the problem
        return Results.Problem($"House with ID {houseId} not found.",
               statusCode: 404);
 
-     //*Use the result object to determine to the status code to return
+     //*Use the result object to determine to the status code to return.
      return Results.Ok(house);
    }).ProducesProblem(404).Produces<HouseDetailDto>(StatusCodes.Status200OK);
                      
